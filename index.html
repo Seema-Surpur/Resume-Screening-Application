@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Resume Query System</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(to right, #1e3a8a, #1d4ed8, #312e81);
+      color: #fff;
+    }
+    .container {
+      width: 80%;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    .container p {
+      font-size: 1rem;
+      margin-bottom: 20px;
+      color: #d1d5db;
+      text-align: center;
+    }
+    .search-box {
+      width: 70%;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .search-box textarea {
+      width: 100%;
+      height: 100px;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 50px 10px 20px;
+      font-size: 1rem;
+      background-color: #1e293b;
+      color: #fff;
+      resize: none;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .search-box textarea::placeholder {
+      color: #94a3b8;
+    }
+    .search-box .icon {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      color: #6b7280;
+      font-size: 1.2rem;
+    }
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      width: 70%;
+    }
+    .buttons button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .buttons .search-btn {
+      background-color: #2563eb;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+    }
+    .buttons .search-btn:hover {
+      background-color: #1d4ed8;
+      box-shadow: 0 6px 15px rgba(37, 99, 235, 0.6);
+    }
+    .buttons .voice-btn {
+      background-color: #9333ea;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(147, 51, 234, 0.4);
+    }
+    .buttons .voice-btn:hover {
+      background-color: #7e22ce;
+      box-shadow: 0 6px 15px rgba(147, 51, 234, 0.6);
+    }
+    #results {
+      width: 70%;
+    }
+    .result-card {
+      background: linear-gradient(135deg, #4f46e5, #9333ea, #ec4899);
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #fff;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .upload-section {
+      width: 70%;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .upload-section input {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI Resume Query System</h1>
+    <p>Discover the perfect candidate using advanced AI-powered search technology</p>
+    
+    <div class="search-box">
+      <textarea id="query-input" placeholder="Describe the ideal candidate you're looking for..."></textarea>
+      <span class="icon">🔍</span>
+    </div>
+
+    <div class="buttons">
+      <button class="search-btn" onclick="submitQuery()">Search Resumes</button>
+      <button class="voice-btn" onclick="startVoiceQuery()">🎤 Voice Input</button>
+    </div>
+
+    <div class="upload-section">
+      <h3>Upload a Resume</h3>
+      <input type="file" id="resume-file" accept=".pdf" />
+      <button class="search-btn" onclick="uploadResume()">Upload and Search</button>
+    </div>
+
+    <div id="results">
+      <!-- Results will appear here -->
+    </div>
+  </div>
+
+  <script>
+    function submitQuery() {
+      const query = document.getElementById("query-input").value;
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "<p>Loading...</p>";
+  
+      fetch('/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query })
+      })
+      .then(response => response.json())
+      .then(data => {
+        resultsDiv.innerHTML = "";
+        if (data.results && data.results.length > 0) {
+          data.results.forEach((res, idx) => {
+            resultsDiv.innerHTML += `
+              <div class="result-card">
+                <strong>Rank ${idx + 1}</strong><br>
+                Name: ${res.Name}<br>
+                Email: ${res.Email}<br>
+                Phone: ${res.Phone}<br>
+                Category: ${res.Category}<br>
+                Resume Details: ${res.Resume}<br>
+                Similarity: ${res.Similarity}%
+              </div>`;
+          });
+        } else {
+          resultsDiv.innerHTML = "<p>No matching resumes found.</p>";
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        resultsDiv.innerHTML = "<p>Error fetching results. Please try again.</p>";
+      });
+    }
+
+    function startVoiceQuery() {
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "<p>Listening for voice input...</p>";
+
+      fetch('/voice_query', {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        resultsDiv.innerHTML = "";
+        if (data.query) {
+          document.getElementById("query-input").value = data.query;
+        }
+        if (data.results && data.results.length > 0) {
+          data.results.forEach((res, idx) => {
+            resultsDiv.innerHTML += `
+              <div class="result-card">
+                <strong>Rank ${idx + 1}</strong><br>
+                Name: ${res.Name}<br>
+                Email: ${res.Email}<br>
+                Phone: ${res.Phone}<br>
+                Category: ${res.Category}<br>
+                Resume Details: ${res.Resume}<br>
+                Similarity: ${res.Similarity}%
+              </div>`;
+          });
+        } else {
+          resultsDiv.innerHTML = "<p>No matching resumes found.</p>";
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        resultsDiv.innerHTML = "<p>Error fetching voice input results. Please try again.</p>";
+      });
+    }
+
+    function uploadResume() {
+      const fileInput = document.getElementById("resume-file");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Please select a file to upload.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("resume_file", file);
+
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "<p>Uploading and processing...</p>";
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        resultsDiv.innerHTML = "";
+        if (data.resume_details) {
+          resultsDiv.innerHTML += `
+            <div class="result-card">
+              <strong>Name:</strong> ${data.resume_details.Name}<br>
+              <strong>Phone:</strong> ${data.resume_details.Phone}<br>
+              <strong>Email:</strong> ${data.resume_details.Email}<br>
+              <strong>Category:</strong> ${data.resume_details.Job_Category}<br>
+              <strong>Resume Details:</strong> ${data.resume_details.Resume_Details}<br>
+            </div>`;
+        } else {
+          resultsDiv.innerHTML = "<p>Error processing the file. Please try again.</p>";
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        resultsDiv.innerHTML = "<p>Error processing the upload. Please try again.</p>";
+      });
+    }
+  </script>
+</body>
+</html>
