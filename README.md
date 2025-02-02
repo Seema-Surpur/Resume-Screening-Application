@@ -20,7 +20,7 @@ The **Resume Screening Application** is an AI-powered system that automates the 
 
 ### **1️⃣ Clone the Repository**  
 ```bash
-git clone https://github.com/your-username/resume-screening-app.git
+git clone https://github.com/Seema-Surpur/resume-screening-app.git
 cd resume-screening-app
 ```
 
